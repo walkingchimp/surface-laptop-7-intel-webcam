@@ -1,0 +1,5 @@
+#!/bin/bash
+# Turn on the Surface webcam bridge (IPU7 -> /dev/video42).
+set -e
+sudo systemctl start surface-webcam.service
+echo "camera on"

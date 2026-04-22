@@ -1,0 +1,16 @@
+[Unit]
+Description=Surface Laptop 7 webcam bridge (IPU7 raw Bayer -> v4l2loopback)
+After=systemd-modules-load.service
+Wants=systemd-modules-load.service
+
+[Service]
+Type=simple
+ExecStart=/usr/bin/python3 /usr/local/lib/surface-webcam/surface-webcam.py
+Restart=on-failure
+RestartSec=5
+Nice=5
+# Cap CPU to half a core; idle detection keeps usage near zero when no consumer.
+CPUQuota=50%
+
+[Install]
+WantedBy=multi-user.target

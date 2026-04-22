@@ -1,0 +1,5 @@
+#!/bin/bash
+# Turn off the Surface webcam bridge — releases the sensor, LED goes out.
+set -e
+sudo systemctl stop surface-webcam.service
+echo "camera off"

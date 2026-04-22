@@ -1,0 +1,1 @@
+<YOUR_USER> ALL=(root) NOPASSWD: /usr/bin/systemctl start surface-webcam.service, /usr/bin/systemctl stop surface-webcam.service, /usr/bin/systemctl status surface-webcam.service, /usr/bin/systemctl restart surface-webcam.service

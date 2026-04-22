@@ -1,0 +1,33 @@
+Subject: [PATCH] media: ov02c10: accept 12 MHz external clock (SL7 Intel workaround)
+
+Microsoft's Surface Laptop 7 (Intel) wires the OV02C10 sensor to a 12 MHz
+clock instead of the 19.2 MHz the driver hard-requires, so the upstream
+probe fails with "external clock 12000000 is not supported".
+
+This patch downgrades that check to a dev_warn so the sensor can probe and
+stream. PLL register sequences are still tuned for 19.2 MHz input, so pixel
+timing is off by ~37.5% — the IPU7 CSI2 receiver tolerates it but logs one
+"Short packet discarded due to errors" per capture session. Frames arrive
+and are usable.
+
+This is explicitly a hack rather than a proper fix. A proper fix needs PLL
+recomputation from the OV02C10 datasheet for 12 MHz input, which I don't
+have. Posted as a stopgap so other SL7 Intel owners can use their webcam.
+
+Not-signed-off-by: <fill-in-before-submitting-upstream>
+---
+--- a/drivers/media/i2c/ov02c10.c
++++ b/drivers/media/i2c/ov02c10.c
+@@ -876,9 +876,9 @@
+ 
+ 	freq = clk_get_rate(ov02c10->img_clk);
+ 	if (freq != OV02C10_MCLK)
+-		return dev_err_probe(ov02c10->dev, -EINVAL,
+-				     "external clock %lu is not supported",
+-				     freq);
++		dev_warn(ov02c10->dev,
++			 "external clock %lu differs from expected %u; proceeding anyway (SL7 12 MHz experiment)\n",
++			 freq, OV02C10_MCLK);
+ 
+ 	v4l2_i2c_subdev_init(&ov02c10->sd, client, &ov02c10_subdev_ops);
+ 

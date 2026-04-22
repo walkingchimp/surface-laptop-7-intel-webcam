@@ -21,13 +21,42 @@ First working Linux setup (that I'm aware of) for the built-in **OV02C10** camer
 
 ## Prerequisites
 
-- The **[linux-surface](https://github.com/linux-surface/linux-surface) kernel** (≥ 6.18.x-surface-1). Stock Ubuntu / Fedora kernels lack Surface-specific support (especially keyboard). I use the Debian apt repo at `https://pkg.surfacelinux.com/debian`.
 - Ubuntu 25.10 (I haven't tried other distros, but anything with kernel 6.18+ and PipeWire should work).
 - Packages: `build-essential dkms python3-opencv python3-v4l2 v4l-utils ffmpeg git`.
+- The **[linux-surface](https://github.com/linux-surface/linux-surface) kernel** (≥ 6.18.x-surface-1). This is where the *keyboard* fix lives — `MSHW0551` → `ssam_node_group_sl7` was added to `surface_aggregator_registry.c` by the linux-surface folks, so just running their kernel gets you a working keyboard. See Step 0 below.
 
 ## Install
 
 Steps, in order. Each is a single command / short block.
+
+### 0. Install the linux-surface kernel (fixes the keyboard)
+
+If you're on a fresh Ubuntu install with a non-working keyboard, do this first. It's not camera-related but it's a prerequisite for the rest of this repo, and you want a working keyboard anyway. Skip if you're already booted on a `-surface-1` kernel (check with `uname -r`).
+
+```bash
+# Add linux-surface's signing key
+curl -fsSL https://raw.githubusercontent.com/linux-surface/linux-surface/master/pkg/keys/surface.asc \
+  | gpg --dearmor | sudo tee /etc/apt/trusted.gpg.d/linux-surface.gpg >/dev/null
+
+# Add the apt repo
+echo "deb [arch=amd64] https://pkg.surfacelinux.com/debian release main" \
+  | sudo tee /etc/apt/sources.list.d/linux-surface.list
+
+# Install the kernel + touch/pen tooling
+sudo apt update
+sudo apt install -y linux-image-surface linux-headers-surface iptsd libwacom-surface
+
+# Reboot — GRUB will pick the -surface kernel by default
+sudo reboot
+```
+
+After reboot, confirm:
+```bash
+uname -r     # should be 6.18.x-surface-1 or similar
+# And the built-in keyboard should type. If yes, you're ready for Step 1.
+```
+
+The stock Ubuntu kernel is kept in GRUB as a fallback — if a `-surface` kernel update ever breaks something, you can boot the stock one from GRUB's "Advanced options".
 
 ### 1. Build and install the patched `ov02c10` kernel module via DKMS
 
